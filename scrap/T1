@@ -4,5 +4,5 @@ WRITE(A, t)
 READ(B, t)
 t := t*5
 WRITE(B, t)
-OUTPUT(A)
 OUTPUT(B)
+OUTPUT(A)

@@ -1,38 +1,27 @@
 #!/usr/bin/env python
 try:
-    from logging.handlers import RotatingFileHandler
     import logging
     import os
     import re
     from pprint import pprint
     from TransLogger import TransLogger
-
 except ImportError, err:
     print err
 
-MEMORY_OBJECT = {}
-ONDISK_OBJECT = {}
 TRANS_OBJECT = {}
-MAX_NO_OF_TRANSACTIONS=0
+MAX_NO_OF_TRANSACTIONS = 0
 
-def logger_initilizer(filename):
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
-    # Console logging
-    _handler = logging.StreamHandler()
-    _handler.setLevel(logging.INFO)
-    _formatter = logging.Formatter \
-        ("%(message)s")
-    _handler.setFormatter(_formatter)
-    logger.addHandler(_handler)
-    # File logging
-    # _handler=logging.FileHandler(filename,'a',encoding=None,delay='true')
-    _handler = RotatingFileHandler(filename, 'a', maxBytes=1048576, encoding=None, backupCount=2, delay='true')
-    _handler.setLevel(logging.DEBUG)
-    _formatter = logging.Formatter \
-        ("[%(asctime)s] [%(levelname)-6s] --- %(message)s (%(filename)s:%(lineno)s)", "%d-%m-%Y %H:%M:%S")
-    _handler.setFormatter(_formatter)
-    logger.addHandler(_handler)
+
+class LevelFilter(logging.Filter):
+    def __init__(self, low, high):
+        self._low = low
+        self._high = high
+        logging.Filter.__init__(self)
+
+    def filter(self, record):
+        if self._low <= record.levelno <= self._high:
+            return True
+        return False
 
 
 def load_transaction():
@@ -45,30 +34,73 @@ def load_transaction():
 
 def read_trans(number_of_transactions):
     if not any(TRANS_OBJECT): load_transaction()
-    for transaction in sorted(TRANS_OBJECT):
-        eval_trans(transaction, TRANS_OBJECT[transaction][0:number_of_transactions])
+    try:
+        for transaction in sorted(TRANS_OBJECT):
+            _message = "<START %s>" % transaction
+            logging.info(_message)
+            logging.debug(_message)
+            eval_trans(transaction, TRANS_OBJECT[transaction][0:number_of_transactions])
+    except KeyboardInterrupt:
+        _message = "<ABORT %s>" %transaction
+        logging.info(_message)
+        logging.debug(_message)
 
 
 def eval_trans(transaction_ID, trans_array=[]):
     if not transaction_ID in MEMORY_OBJECT:
         MEMORY_OBJECT[transaction_ID] = {}
     if not transaction_ID in ONDISK_OBJECT:
-        ONDISK_OBJECT[transaction_ID]={}
+        ONDISK_OBJECT[transaction_ID] = {}
     trans_logger = TransLogger()
     for each_trans in trans_array:
-        (MEMORY_OBJECT[transaction_ID],ONDISK_OBJECT[transaction_ID])=\
-            trans_logger.evaluate(MEMORY_OBJECT[transaction_ID],ONDISK_OBJECT[transaction_ID],each_trans)
+        (MEMORY_OBJECT[transaction_ID], ONDISK_OBJECT[transaction_ID]) = \
+            trans_logger.evaluate\
+                (MEMORY_OBJECT[transaction_ID], ONDISK_OBJECT[transaction_ID], each_trans, transaction_ID)
 
 
 if __name__ == '__main__':
-    load_transaction()
-    for _EACH_TRANS in TRANS_OBJECT:
-        if len(TRANS_OBJECT[_EACH_TRANS]) > MAX_NO_OF_TRANSACTIONS:
-            MAX_NO_OF_TRANSACTIONS = len(TRANS_OBJECT[_EACH_TRANS])
-    _number_of_transactions=1
-    while  _number_of_transactions <= MAX_NO_OF_TRANSACTIONS :
-        read_trans(_number_of_transactions)
-        _number_of_transactions+=1
+    try:
+        load_transaction()
+        for _EACH_TRANS in TRANS_OBJECT:
+            if len(TRANS_OBJECT[_EACH_TRANS]) > MAX_NO_OF_TRANSACTIONS:
+                MAX_NO_OF_TRANSACTIONS = len(TRANS_OBJECT[_EACH_TRANS])
+
+        _number_of_transactions = 1
+
+        logger = logging.getLogger()
+        logger.propagate = False
+        logger.setLevel(logging.DEBUG)
+        _formatter = logging.Formatter \
+            ("%(message)s")
+        log_location = os.path.join(os.path.dirname(os.getcwd()), 'log')
+        if not os.path.exists(log_location): os.makedirs(log_location)
+        while _number_of_transactions <= MAX_NO_OF_TRANSACTIONS:
+            undo_log_file = "%s/%s.txt_%s" % (log_location, _number_of_transactions, 'undo')
+            redo_log_file = "%s/%s.txt_%s" % (log_location, _number_of_transactions, 'redo')
+            MEMORY_OBJECT = {}
+            ONDISK_OBJECT = {}
+            undo_logger = logging.FileHandler(undo_log_file, 'w', encoding=None)
+            undo_logger.setLevel(logging.DEBUG)
+            undo_logger.addFilter(LevelFilter(10, 10))
+            undo_logger.setFormatter(_formatter)
+            logger.addHandler(undo_logger)
+
+            redo_logger = logging.FileHandler(redo_log_file, 'w', encoding=None)
+            redo_logger.setLevel(logging.INFO)
+            redo_logger.addFilter(LevelFilter(20, 20))
+            redo_logger.setFormatter(_formatter)
+            logger.addHandler(redo_logger)
+
+            read_trans(_number_of_transactions)
+
+            logger.removeHandler(undo_logger)
+            logger.removeHandler(redo_logger)
+            _number_of_transactions += 1
+        print "****END OF PROGRAM"
+    except Exception,err:
+        print err
+
+    print "********OUTPUT*********"
     print "TRANS_OBJECT"
     pprint(TRANS_OBJECT)
     print "MEMORY_OBJECT"

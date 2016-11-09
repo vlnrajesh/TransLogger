@@ -1,3 +1,4 @@
-READ(X,t1)
-t1 = t1-2
-OUTPUT(X)
+READ(A,t)
+t := t*2
+WRITE(A, t)
+OUTPUT(A)
