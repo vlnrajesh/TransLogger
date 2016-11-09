@@ -47,9 +47,9 @@ class TransLogger:
         if memory_dict[_db_element] is None:
             memory_dict[_db_element] = self.INPUT(_db_element,transaction_ID)
             ondisk_dict[_db_element] = memory_dict[_db_element]
-        undo_message="<%s, %s, %s>" %(transaction_ID,_db_element,memory_dict[_db_element])
+        undo_message="<%s,%s,%s>" %(transaction_ID,_db_element,memory_dict[_db_element])
         memory_dict[_db_element] = memory_dict[_local_element]
-        redo_message = "<%s, %s, %s>" % (transaction_ID, _db_element, memory_dict[_db_element])
+        redo_message = "<%s,%s,%s>" % (transaction_ID, _db_element, memory_dict[_db_element])
         logging.debug(undo_message)
         logging.info(redo_message)
         return (memory_dict, ondisk_dict)
