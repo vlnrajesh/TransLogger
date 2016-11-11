@@ -53,9 +53,8 @@ def eval_trans(transaction_ID, trans_array=[]):
         ONDISK_OBJECT[transaction_ID] = {}
     trans_logger = TransLogger()
     for each_trans in trans_array:
-        (MEMORY_OBJECT[transaction_ID], ONDISK_OBJECT[transaction_ID]) = \
-            trans_logger.evaluate\
-                (MEMORY_OBJECT[transaction_ID], ONDISK_OBJECT[transaction_ID], each_trans, transaction_ID)
+        (MEMORY_OBJECT[transaction_ID], ONDISK_OBJECT[transaction_ID]) = trans_logger.evaluate\
+            (MEMORY_OBJECT[transaction_ID], ONDISK_OBJECT[transaction_ID], each_trans, transaction_ID,MEMORY_OBJECT,ONDISK_OBJECT)
 
 
 if __name__ == '__main__':
@@ -96,7 +95,7 @@ if __name__ == '__main__':
             logger.removeHandler(undo_logger)
             logger.removeHandler(redo_logger)
             _number_of_transactions += 1
-        print "****END OF PROGRAM"
+        print "*******END OF PROGRAM******"
     except Exception,err:
         print err
 
