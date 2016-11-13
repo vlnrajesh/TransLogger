@@ -1,5 +1,4 @@
 READ(C, t1)
-t1 :=t1*1
 READ(D, t2)
 t1 := t1+t2
 WRITE(C, t1)

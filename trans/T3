@@ -1,8 +1,8 @@
-READ(F, t)
+READ(C, t)
 t := t+1
-WRITE(E, t)
-READ(E, t)
-t :x= t+1
-WRITE(F, t)
-OUTPUT(F)
-OUTPUT(E)
+WRITE(C, t)
+READ(D, t)
+t := t+1
+WRITE(D, t)
+OUTPUT(D)
+OUTPUT(D)

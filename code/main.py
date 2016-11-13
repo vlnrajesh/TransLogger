@@ -9,6 +9,8 @@ except ImportError, err:
     print err
 
 TRANS_OBJECT = {}
+MEMORY_OBJECT={}
+ONDISK_OBJECT={}
 MAX_NO_OF_TRANSACTIONS = 0
 
 
@@ -32,33 +34,35 @@ def load_transaction():
         fp.close()
 
 
-def read_trans(number_of_transactions):
+def read_trans(MEMORY_OBJECT,ONDISK_OBJECT,number_of_transactions):
     if not any(TRANS_OBJECT): load_transaction()
     try:
-        for transaction in sorted(TRANS_OBJECT):
-            _message = "<START %s>" % transaction
+        if not 'trans' in TRANS_OBJECT: TRANS_OBJECT['trans']=[]
+        TRANS_OBJECT['trans'].append(str(number_of_transactions))
+        for transaction_ID in sorted(TRANS_OBJECT):
+            _message = "<START %s>" % transaction_ID
             logging.info(_message)
             logging.debug(_message)
-            eval_trans(transaction, TRANS_OBJECT[transaction][0:number_of_transactions])
+            eval_trans\
+                (MEMORY_OBJECT, ONDISK_OBJECT,transaction_ID,TRANS_OBJECT[transaction_ID][0:number_of_transactions])
     except KeyboardInterrupt:
-        _message = "<ABORT %s>" %transaction
+        _message = "<ABORT %s>" %transaction_ID
         logging.info(_message)
         logging.debug(_message)
+    finally:
+        return MEMORY_OBJECT,ONDISK_OBJECT
 
 
-def eval_trans(transaction_ID, trans_array=[]):
-    if not transaction_ID in MEMORY_OBJECT:
-        MEMORY_OBJECT[transaction_ID] = {}
-    if not transaction_ID in ONDISK_OBJECT:
-        ONDISK_OBJECT[transaction_ID] = {}
+def eval_trans(MEMORY_OBJECT,ONDISK_OBJECT,transaction_ID,trans_array=[]):
+    if not 'in_use' in MEMORY_OBJECT:
+        MEMORY_OBJECT['in_use'] = []
     trans_logger = TransLogger()
-    for each_trans in trans_array:
-        (MEMORY_OBJECT[transaction_ID], ONDISK_OBJECT[transaction_ID]) = trans_logger.evaluate\
-            (MEMORY_OBJECT[transaction_ID], ONDISK_OBJECT[transaction_ID], each_trans, transaction_ID,MEMORY_OBJECT,ONDISK_OBJECT)
+    for each_transaction in trans_array:
+        (MEMORY_OBJECT,ONDISK_OBJECT)=trans_logger.evaluate(MEMORY_OBJECT,ONDISK_OBJECT,transaction_ID,each_transaction)
 
 
 if __name__ == '__main__':
-    try:
+   try:
         load_transaction()
         for _EACH_TRANS in TRANS_OBJECT:
             if len(TRANS_OBJECT[_EACH_TRANS]) > MAX_NO_OF_TRANSACTIONS:
@@ -74,10 +78,10 @@ if __name__ == '__main__':
         log_location = os.path.join(os.path.dirname(os.getcwd()), 'log')
         if not os.path.exists(log_location): os.makedirs(log_location)
         while _number_of_transactions <= MAX_NO_OF_TRANSACTIONS:
+            # MEMORY_OBJECT['trans'].append(_number_of_transactions)
             undo_log_file = "%s/%s.txt_%s" % (log_location, _number_of_transactions, 'undo')
             redo_log_file = "%s/%s.txt_%s" % (log_location, _number_of_transactions, 'redo')
             MEMORY_OBJECT = {}
-            ONDISK_OBJECT = {}
             undo_logger = logging.FileHandler(undo_log_file, 'w', encoding=None)
             undo_logger.setLevel(logging.DEBUG)
             undo_logger.addFilter(LevelFilter(10, 10))
@@ -90,19 +94,23 @@ if __name__ == '__main__':
             redo_logger.setFormatter(_formatter)
             logger.addHandler(redo_logger)
 
-            read_trans(_number_of_transactions)
-
+            MEMORY_OBJECT,ONDISK_OBJECT=read_trans(MEMORY_OBJECT,ONDISK_OBJECT,_number_of_transactions)
             logger.removeHandler(undo_logger)
             logger.removeHandler(redo_logger)
+            if len(MEMORY_OBJECT['in_use']) == 0:
+               correctness_trans='\n'
+               correctness_trans+=' '.join(TRANS_OBJECT['trans'])
+               with open(undo_log_file,'a') as fp:
+                   fp.write(correctness_trans)
+
             _number_of_transactions += 1
         print "*******END OF PROGRAM******"
-    except Exception,err:
-        print err
-
-    print "********OUTPUT*********"
-    print "TRANS_OBJECT"
-    pprint(TRANS_OBJECT)
-    print "MEMORY_OBJECT"
-    pprint(MEMORY_OBJECT)
-    print "ONDISK_OBJECT"
-    pprint(ONDISK_OBJECT)
+   except Exception,err:
+       print err
+   # print "********OUTPUT*********"
+   # print "TRANS_OBJECT"
+   # pprint(TRANS_OBJECT)
+   # print "MEMORY_OBJECT"
+   # pprint(MEMORY_OBJECT)
+   # print "ONDISK_OBJECT"
+   # pprint(ONDISK_OBJECT)

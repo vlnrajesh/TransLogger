@@ -1,8 +1,7 @@
-<START T0>
-<T0> X 10 
-<COMMIT T0>
 <START T1>
-<T1> X 10 A 6 
+<T1> A 16 
 <START T2>
+<T2> A 16 C 13 B 10 D 5 
 <START T3>
-<T3> C 3 D 4 E 4 F 3 X 10 A 6 B 4 
+<T3> A 16 C 14 B 10 D 5 
+<START trans>

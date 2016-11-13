@@ -1,4 +1,0 @@
-READ(X,t)
-t := t*2
-WRITE(X, t)
-OUTPUT(X)
