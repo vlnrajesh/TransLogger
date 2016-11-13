@@ -15,24 +15,27 @@ How to Run the program
 Important Directories
 ----------------------
 code  - All source code is placed under this directory
-    main.py - main wrapper program
-    TransLogger.py which performs logging operations
-
-main.py - Wrapper script for reading transaction and run evaluation
-Translogger.py - Consisits of INPUT,READ,WRITE and OUTPUT functionality include evaluate methods for TransLogger class
 docs - Requirement gathering recods
 log - Where actual logs were written
 trans - This directory loads transactions in file alphabetial order
 
+Important Files
+----------------------
+code/main.py - Wrapper script for reading transaction and run evaluation
+code/Translogger.py - Consisits of INPUT,READ,WRITE and OUTPUT functionality include evaluate methods for TransLogger class
+data/data - This file is read by READ& INPUT operations, in absence of variable it will ask user to provide values.
+
 THINGS TO REMEMBER/Known Issues/Assumptions
 ------------------
-I have commented out Lines #74 to 79 to qualify for assignment.
-Since the temprory variables also we are keeping global MEMORY_OBJECT
-and we are running time of quantum, it will be re read
-variables whose data written via OUTPUT and process the same.
-This results into potential bug as First variable will be processed even after OUTPUT.
+1. As instructed by Ravi teja, Log files are in write mode, instead of append mode.
+1.  I have commented out Lines #74 to 79 to qualify for assignment.
+    Since the temprory variables are also cross transaction varaibles of MEMORY_OBJECT
+    and we are running time of quantum, it will be read variables whose data written via OUTPUT
+    and process the same.
 
-Correctness principle is applicable for ONDISK Storage not Memory storage.
+    This results into potential bug as First variable will be processed even after OUTPUT.
+
+2.  Correctness principle is applicable for ONDISK Storage not Memory storage.
 
 
 
